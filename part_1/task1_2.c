@@ -47,22 +47,26 @@ int main(int argc, char *argv[]) {
 
 void *simple_thread(void *param) {
   int num, val = 0;
-  int thread_num = (intptr_t)param + 1;
+  int thread_num = (intptr_t)param + 1; /* Adding 1 to start thread count at 1 instead of 0. */
 
   for (num = 0; num < 20; num++) {
     if (random() > RAND_MAX/2) {
       usleep(10);
     }
+
     #ifdef PTHREAD_SYNC
+      // Lock mutex
       pthread_mutex_lock(&mutex);
     #endif
 
+    // Critical section
     val = shared_variable;
 
     printf("*** thread #%d sees value %d\n", thread_num, val);
     shared_variable = val + 1;
 
     #ifdef PTHREAD_SYNC
+      // Unlock mutex
       pthread_mutex_unlock(&mutex);
     #endif
   }
@@ -73,5 +77,5 @@ void *simple_thread(void *param) {
   #endif
 
   val = shared_variable;
-  printf("thread #%d sees final value %d\n\n", thread_num, val);
+  printf("thread #%d sees final value %d\n", thread_num, val);
 }
