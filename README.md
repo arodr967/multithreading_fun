@@ -1,6 +1,6 @@
 # Multithreaded Programming and Synchronization
 
-- [Part 1: Simple Multi-threaded Programming using Pthreads](#part-1:-simple-multi-threaded-programming-using-pthreads)
+- [Part 1: Simple Multi-threaded Programming using Pthreads](#part-1-simple-multi-threaded-programming-using-pthreads)
 - Part 2: Multi-threaded/Parallel Programming using OpenMP
 
 ## Part 1: Simple Multi-threaded Programming using Pthreads
@@ -29,7 +29,7 @@ _Some output files have already been added from previous executions._
 1. `gcc -pthread -Wall -D PTHREAD_SYNC task1_2.c -o task1_2_sync`
 2. `./task1_2_sync <number_of_threads>`
 
-> NOTE: Some warnings might appear but they will not prevent the program from functioning.
+> NOTE: Some warnings might appear but they will not prevent the program from executing.
 
 Place output into a file by:
 
