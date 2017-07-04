@@ -17,6 +17,7 @@ int main(int argc, char *argv) {
   B = malloc(M*sizeof(double *));
   C = malloc(M*sizeof(double *));
 
+  /* Initializations */
   for (i = 0; i < M; i++) {
     A[i] = malloc(N*sizeof(double));
     B[i] = malloc(N*sizeof(double));
@@ -35,7 +36,6 @@ int main(int argc, char *argv) {
 
   start = omp_get_wtime();
 
-   
   for (i = 0; i < M; i++) {
     for (j = 0; j < N; j++) {
        sum = 0;
