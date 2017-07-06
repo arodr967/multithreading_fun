@@ -21,12 +21,14 @@ void question_done(int student_id);
 
 // Global variables
 int current_office_capacity = 0;
-int office_capacity, number_of_students = -1;
+int office_capacity, number_of_students;
+
+// 0 false
+// 1 true
 
 // Sync
 pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
-// pthread_barrier_t barrier;
 
 int main(int argc, char *argv[]) {
 
@@ -40,83 +42,54 @@ int main(int argc, char *argv[]) {
   validate_number_of_students();
   validate_office_capacity();
 
-  // pthread_t student_threads[number_of_students];
-
   for (i = 0; i < number_of_students; i++) {
+    // lock
     pthread_mutex_lock(&mutex);
-    if (current_office_capacity != office_capacity) {
-      // student enters the professor's office
-      enter_office(i);
+    while (current_office_capacity == office_capacity) {
+      // wait
+      pthread_cond_wait(&cond, &mutex);
     }
-    pthread_cond_signal(&cond);
+    // unlock
     pthread_mutex_unlock(&mutex);
+
+    enter_office(i);
+    student(i);
+    leave_office(i);
   }
 
-  for (j = 0; j < number_of_students; j++) {
-    student(j);
-  }
-
-  pthread_mutex_lock(&mutex);
-  while (current_office_capacity == office_capacity) {
-    // student must wait
-    pthread_cond_wait(&cond, &mutex);
-  }
-  pthread_mutex_unlock(&mutex);
-
-
-
+  // professor(); ????
 
   return 0;
 }
 
 void student(int id) {
-  pthread_t student_threads[number_of_students];
+  pthread_t student_thread;
 
-
-
-  pthread_create(&student_threads[id], NULL, ask_questions, (int *)id);
-  pthread_join(student_threads[id], NULL);
-
-
+  pthread_create(&student_thread, NULL, ask_questions, (int *)id);
+  pthread_join(student_thread, NULL);
 }
 
 void *ask_questions(int *id) {
   int number_of_questions = fmod((intptr_t)id, 4) + 1;
   int i;
 
-  // // If the office is already full
-  // if (current_office_capacity == office_capacity) {
-  //   // student must wait
-  // } else {
-
-  // // student enters the professor's office
-  // enter_office(id);
-
   for (i = 0; i < number_of_questions; i++) {
-    // wait to ask question until it is the student's turn
+    // wait until it's student turn to ask question
     question_start((intptr_t)id);
-
-    professor((intptr_t)id);
 
     // wait until professor is done answering the question
     question_done((intptr_t)id);
   }
-
-  // another student can come in now
-  leave_office(id);
-
-    // leave_office((intptr_t)id);
-    // // another student can come in now
-  // }
 }
 
 void enter_office(int student_id) {
   printf("Student %d enters the office.\n", student_id);
 
   // less space in office now
-
-  current_office_capacity++;
-
+  pthread_mutex_lock(&mutex);
+  current_office_capacity++; // signal
+  pthread_cond_signal(&cond);
+  pthread_mutex_unlock(&mutex);
 }
 
 void leave_office(int student_id) {
@@ -124,7 +97,7 @@ void leave_office(int student_id) {
 
   // more space in office now
   pthread_mutex_lock(&mutex);
-  current_office_capacity--;
+  current_office_capacity--; // signal
   pthread_cond_signal(&cond);
   pthread_mutex_unlock(&mutex);
 }
@@ -145,11 +118,24 @@ void professor(int student_id) {
 }
 
 void *answer_questions(int *student_id) {
-  answer_start((intptr_t)student_id);
-  answer_done((intptr_t)student_id);
+  while(1) {
+    answer_start((intptr_t)student_id);
+    answer_done((intptr_t)student_id);
+  }
 }
 
 void answer_start(int student_id) {
+  // answer_start() blocks when there are no students around.
+
+  // lock
+  pthread_mutex_lock(&mutex);
+  while(current_office_capacity == 0) {
+    // wait
+    pthread_cond_wait(&cond, &mutex);
+  }
+  // unlock
+  pthread_mutex_unlock(&mutex);
+
   printf("Professor starts to answer question for student %d.\n", student_id);
 }
 
