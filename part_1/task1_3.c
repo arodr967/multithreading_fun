@@ -24,7 +24,6 @@ void question_done();
 void initialize_semaphores();
 
 // Global variables
-int current_office_capacity = 0;
 int office_student_id, question_student_id = -1;
 int office_capacity, number_of_students;
 
