@@ -2,6 +2,9 @@
 
 - [Part 1: Simple Multi-threaded Programming using Pthreads](#part-1-simple-multi-threaded-programming-using-pthreads)
 - Part 2: Multi-threaded/Parallel Programming using OpenMP
+- Part 3: OpenMP Solution for Queue Scheduling Problem in Task 1.3
+
+---
 
 ## Part 1: Simple Multi-threaded Programming using Pthreads
 
@@ -47,3 +50,49 @@ Task 3 can be found in `task1_3.c`
 
 1. `gcc -pthread -lm task1_3.c -o task1_3`
 2. `./task1_3 <number_of_students> <office_capacity>`
+
+----
+
+## Part 2: Multi-threaded/Parallel Programming using OpenMP
+
+Files found for part 2 are in the `part_2/` directory.
+
+### Tasks 1, 2, and 3
+
+- Task 1 can be found in `OpenMP/helloworld.c`
+- Task 2 can be found in `task2_2.c`
+- Task 3 can be found in `task2_3.c`
+
+#### Compile & Run
+
+Any of the files above an be compiled and run the following way:
+
+1. `gcc -fopenmp task2_2.c -o task2_2`
+2. `./task2_2`
+
+### Task 4
+
+Task 4 can be found separated as 4 different files.
+
+- `task2_4_original.c` is the original code that is given on the assignment.
+- `task2_4_outer.c` is the parallelized code with only the outer for loop parallelized.
+- `task2_4_middle.c` is the parallelized code with only the middle for loop parallelized.
+- `task2_4_both.c` is the parallelized code with both the outer and middle loops parralelized.
+
+#### Compile & Run
+
+Any of the files above an be compiled and run the following way:
+
+1. `gcc -fopenmp task2_4_original.c -o task2_4_original`
+2. `./task2_4_original`
+
+---
+
+## Part 3: OpenMP Solution for Queue Scheduling Problem in Task 1.3
+
+File found for part 3 are in `part_3/task1_3_OpenMP.c`
+
+#### Compile & Run
+
+1. `gcc -pthread -fopenmp -lm task1_3_OpenMP.c -o task1_3_OpenMP`
+2. `./task1_3_OpenMP <number_of_students> <office_capacity>`
