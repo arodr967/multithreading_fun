@@ -1,3 +1,16 @@
+// COP4610 – Principles of Operating Systems – Summer C 2017
+// Prof. Jose F. Osorio
+// Student: Alicia Rodriguez – 5162522
+//
+// Assignment#: 3
+// Project: Multithreaded Programming
+// Specs: Parallelizing Matrix Multiplication (Both Loops)
+// Due Date: 07/09/2017 by 11:55pm
+//
+// Module Name: Parallelizing Matrix Multiplication
+// I Certify that this program code has been written by me
+// and no part of it has been taken from any sources.
+
 #include <omp.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,21 +49,16 @@ int main(int argc, char *argv) {
 
   start = omp_get_wtime();
 
-  #pragma omp parallel shared(A,B,C,sum) private(i,j,k) // NOTE: Comment out this line to run parallelization for both loops (outer and middle)
-  {
-    // #pragma omp parallel for // NOTE: To run parallelization for both loops (outer and middle)
-    #pragma omp for // NOTE: To run parallelization for outer loop
-    for (i = 0; i < M; i++) {
-      // #pragma omp parallel for // NOTE: To run parallelization for both loops (outer and middle)
-      // #pragma omp for // NOTE: To run parallelization for inner loop
-      for (j = 0; j < N; j++) {
-         sum = 0;
-         for (k=0; k < M; k++) {
-            sum += A[i][k]*B[k][j];
-         }
-         C[i][j] = sum;
-     }
-    }
+  #pragma omp parallel for
+  for (i = 0; i < M; i++) {
+    #pragma omp parallel for
+    for (j = 0; j < N; j++) {
+       sum = 0;
+       for (k=0; k < M; k++) {
+          sum += A[i][k]*B[k][j];
+       }
+       C[i][j] = sum;
+   }
   }
 
   end = omp_get_wtime();
