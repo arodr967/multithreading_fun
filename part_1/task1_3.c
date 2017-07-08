@@ -1,11 +1,22 @@
+// COP4610 – Principles of Operating Systems – Summer C 2017
+// Prof. Jose F. Osorio
+// Student: Alicia Rodriguez – 5162522
+//
+// Assignment#: 3
+// Project: Multithreaded Programming
+// Specs: Queue Scheduling Multi-Threaded Programming
+// Due Date: 07/09/2017 by 11:55pm
+//
+// Module Name: Queue Scheduling Multi-Threaded Programming
+// I Certify that this program code has been written by me
+// and no part of it has been taken from any sources.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <pthread.h>
 #include <math.h>
 #include <semaphore.h>
-#include <time.h>
-#include <sys/time.h>
 
 // Function declarations
 void validate_arguments(int argc, char *argv[]);

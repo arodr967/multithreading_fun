@@ -1,3 +1,16 @@
+// COP4610 – Principles of Operating Systems – Summer C 2017
+// Prof. Jose F. Osorio
+// Student: Alicia Rodriguez – 5162522
+//
+// Assignment#: 3
+// Project: Multithreaded Programming
+// Specs: Simple Threads Programming with & without Proper Synchronization
+// Due Date: 07/09/2017 by 11:55pm
+//
+// Module Name: Simple Threads Programming with & without Proper Synchronization
+// I Certify that this program code has been written by me
+// and no part of it has been taken from any sources.
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
