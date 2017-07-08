@@ -43,4 +43,7 @@ _Some output files have already been added from previous executions._
 
 Task 3 can be found in `task1_3.c`
 
-...
+#### Compile & Run
+
+1. `gcc -pthread -lm task1_3.c -o task1_3`
+2. `./task1_3 <number_of_students> <office_capacity>`
