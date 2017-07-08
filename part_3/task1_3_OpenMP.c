@@ -66,6 +66,8 @@ int main(int argc, char *argv[]) {
 
   printf("\n*** PROFESSOR'S OFFICE HOURS HAVE BEGUN ***\n\n");
 
+	// omp_set_num_threads(number_of_students + 1); // 1 for the professor...
+
   // Create professor thread
   professor();
 
@@ -108,11 +110,12 @@ void *student_actions(void *stud) {
   int i;
   int id = student->id;
 
+	// CRITICAL Construct
   sem_wait(&office_queue); // wait if office is full
   office_student_id = id;
   enter_office();
 
-  for (i = 0; i < number_of_questions; i++) {
+  for (i = 0; i < number_of_questions; i++) { // ORDERED Directive ??
     sem_wait(&question_queue);
 
     // wait until it's student turn to ask question
@@ -130,6 +133,7 @@ void *student_actions(void *stud) {
     sem_post(&question_queue);
   }
 
+	// CRITICAL Construct
   sem_post(&office_queue); // another student can enter the office now
   office_student_id = id;
   leave_office();
