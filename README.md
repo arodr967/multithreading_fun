@@ -1,10 +1,9 @@
 # Multithreaded Programming and Synchronization
 
 - [Part 1: Simple Multi-threaded Programming using Pthreads](#part-1-simple-multi-threaded-programming-using-pthreads)
-- Part 2: Multi-threaded/Parallel Programming using OpenMP
-- Part 3: OpenMP Solution for Queue Scheduling Problem in Task 1.3
+- [Part 2: Multi-threaded/Parallel Programming using OpenMP](#part-2-multi-threadedparallel-programming-using-openmp)
+- [Part 3: OpenMP Solution for Queue Scheduling Problem in Task 1.3](#part-3-openmp-solution-for-queue-scheduling-problem-in-task-13)
 
----
 
 ## Part 1: Simple Multi-threaded Programming using Pthreads
 
@@ -51,7 +50,7 @@ Task 3 can be found in `task1_3.c`
 1. `gcc -pthread -lm task1_3.c -o task1_3`
 2. `./task1_3 <number_of_students> <office_capacity>`
 
-----
+
 
 ## Part 2: Multi-threaded/Parallel Programming using OpenMP
 
@@ -86,7 +85,7 @@ Any of the files above an be compiled and run the following way:
 1. `gcc -fopenmp task2_4_original.c -o task2_4_original`
 2. `./task2_4_original`
 
----
+
 
 ## Part 3: OpenMP Solution for Queue Scheduling Problem in Task 1.3
 
