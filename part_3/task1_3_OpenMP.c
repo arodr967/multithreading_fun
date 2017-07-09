@@ -14,11 +14,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
-#include <pthread.h>
 #include <math.h>
+#include <omp.h>
 #include <semaphore.h>
-#include <time.h>
-#include <sys/time.h>
 
 // Function declarations
 void validate_arguments(int argc, char *argv[]);
@@ -44,15 +42,14 @@ sem_t office_queue;
 sem_t question_queue;
 sem_t student_speaker;
 sem_t professor_speaker;
-pthread_t *student_threads;
 
 struct student_struct {
-	int number_of_questions; //number of questions the student has
+	int number_of_questions; // number of questions the student has
 	int id; // students id
 };
 
 int main(int argc, char *argv[]) {
-  int i;
+  int i, tid, nthreads;
 
   validate_arguments(argc, argv);
 
@@ -62,28 +59,41 @@ int main(int argc, char *argv[]) {
   validate_number_of_students();
   validate_office_capacity();
 
-  initialize_semaphores();
+	initialize_semaphores();
+	omp_set_num_threads(number_of_students + 1);
 
   printf("\n*** PROFESSOR'S OFFICE HOURS HAVE BEGUN ***\n\n");
 
-	// omp_set_num_threads(number_of_students + 1); // 1 for the professor...
-
   // Create professor thread
-  professor();
+	#pragma omp parallel shared(nthreads) private(i, tid)
+	{
 
-  student_threads = malloc(sizeof(struct student_struct) * number_of_students);
+		tid = omp_get_thread_num();
 
-  // Create student thread
-  for (i = 0; i < number_of_students; i++) {
-    student(i);
-  }
+		if (tid == 0) {
+			nthreads = omp_get_num_threads();
+			printf("Number of threads = %d\n", nthreads);
+		}
 
-  // Join student threads
-  for (i = 0; i < number_of_students; i++) {
-    pthread_join(*(student_threads + i), NULL);
-  }
+		printf("Thread %d starting...\n", tid);
 
-  free(student_threads);
+
+		#pragma omp master
+		{
+			printf("Thread %d is the master...\n", tid);
+			professor();
+		}
+
+		// #pragma omp single
+    // {
+    //   #pragma omp section
+    //   {
+		  for (i = 0; i < number_of_students; i++) {
+				student(i);
+		  }
+		// 	}
+		// }
+	}
 
   printf("\n*** PROFESSOR'S OFFICE HOURS HAVE CONCLUDED ***\n\n");
 
@@ -91,63 +101,46 @@ int main(int argc, char *argv[]) {
 }
 
 void student(int id) {
-  pthread_t student_thread;
-
+	// printf("inside student...\n");
   struct student_struct* stud = (struct student_struct*)malloc(sizeof(struct student_struct));
 
   stud->id = id;
   stud->number_of_questions = fmod(id, 4) + 1;
 
-  pthread_create(&student_thread, NULL, student_actions, (void *)stud);
+	int number_of_questions = stud->number_of_questions;
+	int i;
 
-  *(student_threads + id) = student_thread;
-}
+	sem_wait(&office_queue); // wait if office is full
+	office_student_id = id;
+	enter_office();
 
-void *student_actions(void *stud) {
+	// #pragma omp parallel for private(i)
+	for (i = 0; i < number_of_questions; i++) {
+		sem_wait(&question_queue);
 
-  struct student_struct *student = (struct student_struct *) stud;
-  int number_of_questions = student->number_of_questions;
-  int i;
-  int id = student->id;
+		// wait until it's student turn to ask question
+		sem_wait(&student_speaker);
+		question_student_id = id;
+		question_start();
 
-	// CRITICAL Construct
-  sem_wait(&office_queue); // wait if office is full
-  office_student_id = id;
-  enter_office();
+		sem_post(&professor_speaker);
+		sem_wait(&student_speaker);
+		// wait until professor is done answering the question
+		question_done();
+		question_student_id = -1; // making sure there are no errors
+		sem_post(&professor_speaker);
 
-  for (i = 0; i < number_of_questions; i++) { // ORDERED Directive ??
-    sem_wait(&question_queue);
+		sem_post(&question_queue);
+	}
 
-    // wait until it's student turn to ask question
-    sem_wait(&student_speaker);
-    question_student_id = id;
-    question_start();
-
-    sem_post(&professor_speaker);
-    sem_wait(&student_speaker);
-    // wait until professor is done answering the question
-    question_done();
-    question_student_id = -1; // making sure there are no errors
-    sem_post(&professor_speaker);
-
-    sem_post(&question_queue);
-  }
-
-	// CRITICAL Construct
-  sem_post(&office_queue); // another student can enter the office now
-  office_student_id = id;
-  leave_office();
-
+	sem_post(&office_queue); // another student can enter the office now
+	office_student_id = id;
+	leave_office();
 }
 
 void professor() {
-  pthread_t professor_thread;
-
-  pthread_create(&professor_thread, NULL, professor_actions, NULL);
-}
-
-void *professor_actions() {
-  while(1) {
+	while(1) {
+		printf("in professor...\n");
     sem_post(&student_speaker);
     sem_wait(&professor_speaker);
 
