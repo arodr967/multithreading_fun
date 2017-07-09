@@ -47,11 +47,13 @@ int main(int argc, char *argv) {
      }
   }
 
+  omp_set_nested(1);
+
   start = omp_get_wtime();
 
-  #pragma omp parallel for
+  #pragma omp parallel for shared(A,B,C) private(i) schedule(static)
   for (i = 0; i < M; i++) {
-    #pragma omp parallel for
+    #pragma omp parallel for shared(A,B,C) private(j,k,sum)
     for (j = 0; j < N; j++) {
        sum = 0;
        for (k=0; k < M; k++) {

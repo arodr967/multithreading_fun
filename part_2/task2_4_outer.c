@@ -15,8 +15,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M 500
-#define N 500
+#define M 5000
+#define N 5000
 
 int main(int argc, char *argv) {
   //set number of threads here
@@ -49,7 +49,7 @@ int main(int argc, char *argv) {
 
   start = omp_get_wtime();
 
-  #pragma omp parallel shared(A,B,C,sum) private(i,j,k)
+  #pragma omp parallel shared(A,B,C) private(i,j,k)
   {
     #pragma omp for
     for (i = 0; i < M; i++) {

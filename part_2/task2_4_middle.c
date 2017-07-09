@@ -49,7 +49,7 @@ int main(int argc, char *argv) {
 
   start = omp_get_wtime();
 
-  #pragma omp parallel shared(A,B,C,sum) private(i,j,k)
+  #pragma omp parallel shared(A,B,C) private(i,j,k)
   {
     for (i = 0; i < M; i++) {
       #pragma omp for
