@@ -20,7 +20,7 @@
 
 int main(int argc, char *argv) {
   //set number of threads here
-  omp_set_num_threads(32);
+  omp_set_num_threads(1);
 
   int i, j, k;
   double sum;

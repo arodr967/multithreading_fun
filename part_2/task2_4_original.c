@@ -15,12 +15,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define M 5000
-#define N 5000
+#define M 500
+#define N 500
 
 int main(int argc, char *argv) {
   //set number of threads here
-  omp_set_num_threads(32);
+  omp_set_num_threads(1);
 
   int i, j, k;
   double sum;
