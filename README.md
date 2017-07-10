@@ -76,7 +76,7 @@ Task 4 can be found separated as 4 different files.
 - `task2_4_original.c` is the original code that is given on the assignment.
 - `task2_4_outer.c` is the parallelized code with only the outer for loop parallelized.
 - `task2_4_middle.c` is the parallelized code with only the middle for loop parallelized.
-- `task2_4_both.c` is the parallelized code with both the outer and middle loops parralelized.
+- `task2_4_both.c` is the parallelized code with both the outer and middle loops parallelized.
 
 #### Compile & Run
 
