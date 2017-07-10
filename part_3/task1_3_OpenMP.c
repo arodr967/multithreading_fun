@@ -16,14 +16,12 @@
 #include <stdint.h>
 #include <math.h>
 #include <omp.h>
-#include <semaphore.h>
 
 // Function declarations
 void validate_arguments(int argc, char *argv[]);
 void validate_number_of_students();
 void validate_office_capacity();
-void *student_actions(void *stud);
-void *professor_actions();
+void initialize_locks();
 void student(int id);
 void professor();
 void answer_start();
@@ -32,24 +30,18 @@ void enter_office();
 void leave_office();
 void question_start();
 void question_done();
-void initialize_semaphores();
 
 // Global variables
 int office_student_id, question_student_id = -1;
-int office_capacity, number_of_students;
+int office_capacity, number_of_students, current_number_of_students, current_office_capacity;
 
-sem_t office_queue;
-sem_t question_queue;
-sem_t student_speaker;
-sem_t professor_speaker;
-
-struct student_struct {
-	int number_of_questions; // number of questions the student has
-	int id; // students id
-};
+omp_lock_t question_queue;
+omp_lock_t office_queue;
+omp_lock_t student_speaker;
+omp_lock_t professor_speaker;
 
 int main(int argc, char *argv[]) {
-  int i, tid, nthreads;
+  int i, tid, student_tid;
 
   validate_arguments(argc, argv);
 
@@ -59,96 +51,78 @@ int main(int argc, char *argv[]) {
   validate_number_of_students();
   validate_office_capacity();
 
-	initialize_semaphores();
+	initialize_locks();
+
 	omp_set_num_threads(number_of_students + 1);
+	current_number_of_students = number_of_students;
 
   printf("\n*** PROFESSOR'S OFFICE HOURS HAVE BEGUN ***\n\n");
 
-  // Create professor thread
-	#pragma omp parallel shared(nthreads) private(i, tid)
+	#pragma omp parallel private(tid, student_tid)
 	{
-
 		tid = omp_get_thread_num();
 
 		if (tid == 0) {
-			nthreads = omp_get_num_threads();
-			printf("Number of threads = %d\n", nthreads);
-		}
-
-		printf("Thread %d starting...\n", tid);
-
-
-		#pragma omp master
-		{
-			printf("Thread %d is the master...\n", tid);
 			professor();
+		} else {
+			student_tid = tid - 1;
+			student(student_tid);
 		}
 
-		// #pragma omp single
-    // {
-    //   #pragma omp section
-    //   {
-		  for (i = 0; i < number_of_students; i++) {
-				student(i);
-		  }
-		// 	}
-		// }
+		if (current_number_of_students == 0) {
+			printf("\n*** PROFESSOR'S OFFICE HOURS HAVE CONCLUDED ***\n\n");
+			exit(0);
+		}
 	}
-
-  printf("\n*** PROFESSOR'S OFFICE HOURS HAVE CONCLUDED ***\n\n");
 
   return 0;
 }
 
 void student(int id) {
-	// printf("inside student...\n");
-  struct student_struct* stud = (struct student_struct*)malloc(sizeof(struct student_struct));
-
-  stud->id = id;
-  stud->number_of_questions = fmod(id, 4) + 1;
-
-	int number_of_questions = stud->number_of_questions;
+	int number_of_questions = fmod(id, 4) + 1;
 	int i;
 
-	sem_wait(&office_queue); // wait if office is full
+	// wait if office is full
+	omp_set_lock(&office_queue);
+	while(current_office_capacity == office_capacity);
+	omp_unset_lock(&office_queue);
 	office_student_id = id;
+	current_office_capacity++;
 	enter_office();
 
-	// #pragma omp parallel for private(i)
 	for (i = 0; i < number_of_questions; i++) {
-		sem_wait(&question_queue);
-
+		omp_set_lock(&question_queue);
 		// wait until it's student turn to ask question
-		sem_wait(&student_speaker);
+		omp_set_lock(&student_speaker);
 		question_student_id = id;
 		question_start();
 
-		sem_post(&professor_speaker);
-		sem_wait(&student_speaker);
+		omp_unset_lock(&professor_speaker);
+		omp_set_lock(&student_speaker);
 		// wait until professor is done answering the question
 		question_done();
 		question_student_id = -1; // making sure there are no errors
-		sem_post(&professor_speaker);
-
-		sem_post(&question_queue);
+		omp_unset_lock(&professor_speaker);
+		omp_unset_lock(&question_queue);
 	}
 
-	sem_post(&office_queue); // another student can enter the office now
+	// another student can enter the office now
+	current_office_capacity--;
 	office_student_id = id;
+	current_number_of_students--;
 	leave_office();
 }
 
 void professor() {
 	while(1) {
-		printf("in professor...\n");
-    sem_post(&student_speaker);
-    sem_wait(&professor_speaker);
+    omp_unset_lock(&student_speaker);
+    omp_set_lock(&professor_speaker);
 
     answer_start();
     answer_done();
 
-    sem_post(&student_speaker);
-		sem_wait(&professor_speaker);
+    omp_unset_lock(&student_speaker);
+		omp_set_lock(&professor_speaker);
   }
 }
 
@@ -197,9 +171,13 @@ void validate_office_capacity() {
   }
 }
 
-void initialize_semaphores() {
-	sem_init(&office_queue, 0, office_capacity); // handle students in office
-  sem_init(&question_queue, 0, 1); // handle students asking questions
-  sem_init(&student_speaker, 0, 0); // handle when the student speaks
-  sem_init(&professor_speaker, 0, 0); // handle when the professor speaks
+void initialize_locks() {
+	omp_init_lock(&office_queue);
+	omp_init_lock(&question_queue);
+
+	omp_init_lock(&student_speaker);
+	omp_set_lock(&student_speaker); // initially set to wait
+
+	omp_init_lock(&professor_speaker);
+	omp_set_lock(&professor_speaker); // initially set to wait
 }
