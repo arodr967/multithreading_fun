@@ -93,5 +93,5 @@ File found for part 3 are in `part_3/task1_3_OpenMP.c`
 
 #### Compile & Run
 
-1. `gcc -pthread -fopenmp -lm task1_3_OpenMP.c -o task1_3_OpenMP`
+1. `gcc -fopenmp -lm task1_3_OpenMP.c -o task1_3_OpenMP`
 2. `./task1_3_OpenMP <number_of_students> <office_capacity>`
